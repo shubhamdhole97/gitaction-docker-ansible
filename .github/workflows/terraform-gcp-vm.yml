@@ -26,9 +26,9 @@ jobs:
         working-directory: terraform
 
       - name: Terraform Plan
-        run: terraform plan -var="project_id=absolute-hub-460713-v0"
+        run: terraform plan -var="project_id=absolute-hub-460713-v0" -var="ssh_pub_key=${{ secrets.SSH_PUBLIC_KEY }}"
         working-directory: terraform
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="project_id=absolute-hub-460713-v0"
+        run: terraform apply -auto-approve -var="project_id=absolute-hub-460713-v0" -var="ssh_pub_key=${{ secrets.SSH_PUBLIC_KEY }}"
         working-directory: terraform

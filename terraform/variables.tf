@@ -21,8 +21,7 @@ variable "ssh_user" {
   default     = "ubuntu"
 }
 
-variable "ssh_pub_key_path" {
-  description = "Path to SSH public key"
+variable "ssh_pub_key" {
+  description = "Public SSH key content"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
 }

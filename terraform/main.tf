@@ -17,6 +17,6 @@ resource "google_compute_instance" "ubuntu_vm" {
   tags = ["ssh"]
 
   metadata = {
-        ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
+    ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
   }
 }
