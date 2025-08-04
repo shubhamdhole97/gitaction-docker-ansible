@@ -20,3 +20,7 @@ resource "google_compute_instance" "ubuntu_vm" {
     ssh-keys = "${var.ssh_user}:${var.ssh_pub_key}"
   }
 }
+
+output "vm_ip" {
+  value = google_compute_instance.ubuntu_vm.network_interface[0].access_config[0].nat_ip
+}

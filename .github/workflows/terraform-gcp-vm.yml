@@ -1,34 +1,49 @@
-name: Terraform GCP VM Deploy
+name: Terraform + Ansible Docker Setup
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6
+    - name: ☁️ Set up Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      - name: Decode and Save GCP Credentials
-        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > terraform/gcp-key.json
+    - name: 🗝️ Create GCP Credentials File
+      run: echo "${{ secrets.GOOGLE_CREDENTIALS }}" > terraform/gcp-key.json
 
-      - name: Terraform Init
-        run: terraform init
-        working-directory: terraform
+    - name: 📦 Terraform Init and Apply
+      working-directory: terraform
+      run: |
+        terraform init
+        terraform apply -auto-approve
 
-      - name: Terraform Plan
-        run: terraform plan -var="project_id=absolute-hub-460713-v0" -var="ssh_pub_key=${{ secrets.SSH_PUBLIC_KEY }}"
-        working-directory: terraform
+    - name: 🌐 Get VM IP from Terraform Output
+      id: get_ip
+      working-directory: terraform
+      run: |
+        echo "vm_ip=$(terraform output -raw vm_ip)" >> $GITHUB_ENV
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -var="project_id=absolute-hub-460713-v0" -var="ssh_pub_key=${{ secrets.SSH_PUBLIC_KEY }}"
-        working-directory: terraform
+    - name: 🛠️ Install Ansible
+      run: sudo apt-get update && sudo apt-get install -y ansible
+
+    - name: 🔐 Add SSH Private Key
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: 📝 Create Ansible Inventory File
+      run: |
+        echo "[ubuntu]" > ansible/inventory.ini
+        echo "$VM_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ansible/inventory.ini
+      env:
+        VM_IP: ${{ env.vm_ip }}
+
+    - name: 🐳 Run Ansible to Install Docker
+      run: ansible-playbook -i ansible/inventory.ini ansible/install_docker.yml
